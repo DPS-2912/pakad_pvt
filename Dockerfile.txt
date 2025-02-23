@@ -1,9 +1,15 @@
-FROM python:3.13.2  
+FROM python:3.10  # Change from python:3.13.2 to python:3.10
 
-WORKDIR /app  
+WORKDIR /app
+COPY . /app
 
-COPY . /app  
+# Install system dependencies
+RUN apt-get update && apt-get install -y libpcap-dev wget curl
 
+# Upgrade pip
+RUN pip install --upgrade pip
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt  
 
 CMD ["python", "/app/fingerprinting.py"]
