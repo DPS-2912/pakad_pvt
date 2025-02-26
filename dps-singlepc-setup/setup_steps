@@ -1,0 +1,15 @@
+Setup Steps :
+1. sudo apt install -y python3 python3-pip docker.io tshark firefox xvfb tor unzip wget
+1.1 sudo systemctl enable docker
+    sudo systemctl start docker
+2. Create a new directory (lets say packet_cpature)
+3. move to that packet_capture directory
+4. copy the Dockerfile and app_to_collect_data into the directory
+5. docker build -t packet_capture .
+6. docker run -it --rm packet_capture /bin/bash
+7. run python file inside this shell...   python3 /app/app_to_collect_data.py
+8. ls captures..  to view pcap files
+
+instead of step 6,7,8  : you can also do
+docker run -it --rm packet_capture python3 /app/app_to_collect_data.py
+Since the .pcap files are being stored inside the Docker container, they will be lost once the container stops (because you used --rm, which removes the container after execution). So prefer steps 6,7,8
