@@ -6,7 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 
 # Base directory for packet captures
-BASE_DIR = "/home/dps/captures"
+BASE_DIR = "/app/captures"
 
 subprocess.Popen(["Xvfb", ":99", "-screen", "0", "1024x768x24"])
 os.environ["DISPLAY"] = ":99"
@@ -35,8 +35,8 @@ def get_network_interface():
     except subprocess.CalledProcessError:
         return "any"
 
-# Get the active network interface (should return "enp0s8" in your case)
-NETWORK_INTERFACE = "enp0s8"
+# Get the active network interface
+NETWORK_INTERFACE = get_network_interface()
 print(f"🌐 Using network interface: {NETWORK_INTERFACE}")
 
 # Function to start tshark and capture all network traffic (NO FILTERING)
@@ -58,7 +58,7 @@ def visit_website(url):
     service = Service(GECKODRIVER_PATH)
     driver = webdriver.Firefox(service=service)
     driver.get(url)
-    time.sleep(10)  # Wait for page to load
+    time.sleep(20)  # Wait for page to load
     driver.quit()
 
 # Start capturing packets for each website
@@ -85,7 +85,7 @@ for repeat in range(NUM_REPEATS):
         print(f"  ✅ Saved: {pcap_file}")
 
         # Wait before next website
-        print("  ⏳ Waiting 10 seconds before next website...\n")
-        time.sleep(10)
+        print("  ⏳ Waiting 5 seconds before next website...\n")
+        time.sleep(5)
 
 print("\n🎯 Packet capture complete! Check your /app/captures folder.")
