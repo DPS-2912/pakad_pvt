@@ -1,25 +1,34 @@
 import os
 import subprocess
 import time
-import socket
+import csv
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
 
-# Base directory for packet captures
+# Base directory for packet captures and screenshots
 BASE_DIR = "/app/captures"
-
 subprocess.Popen(["Xvfb", ":99", "-screen", "0", "1024x768x24"])
 os.environ["DISPLAY"] = ":99"
 
-# List of websites to visit
-websites = [
-    "https://w3schools.com",
-    "https://www.thapar.edu",
-    "https://www.github.com"
-]
+# Path to Tranco CSV file
+TRANCO_CSV_PATH = "websites.csv"
+
+# Load websites from the Tranco CSV file
+def load_websites(csv_path):
+    websites = []
+    with open(csv_path, newline="", encoding="utf-8") as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            if row:
+                websites.append("https://" + row[0].strip())
+    return websites[:75]  # Ensure only top 50 websites are used
+
+websites = load_websites(TRANCO_CSV_PATH)
 
 # Number of times to repeat the sequence
-NUM_REPEATS = 1
+NUM_REPEATS = 2
 
 # Path to GeckoDriver for Firefox
 GECKODRIVER_PATH = "/usr/bin/geckodriver"
@@ -53,12 +62,24 @@ def start_packet_capture(output_file):
         "-w", output_file  # Save as a PCAP file
     ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-# Function to visit a website using Firefox
-def visit_website(url):
+# Function to visit a website, take a screenshot, and scroll slowly
+def visit_website(url, screenshot_path):
     service = Service(GECKODRIVER_PATH)
     driver = webdriver.Firefox(service=service)
     driver.get(url)
-    time.sleep(20)  # Wait for page to load
+    
+    time.sleep(10)  # Wait 10 seconds to ensure the page loads fully
+    driver.save_screenshot(screenshot_path)
+    print(f"  📸 Screenshot saved: {screenshot_path}")
+    
+    # Scroll the page slowly
+    scroll_height = driver.execute_script("return document.body.scrollHeight")
+    scroll_step = scroll_height // 10  # Scroll in 10 steps
+    for i in range(10):
+        driver.execute_script(f"window.scrollBy(0, {scroll_step})")
+        time.sleep(4)  # Pause between scrolls
+    
+    time.sleep(10)  # Additional wait time to capture network traffic
     driver.quit()
 
 # Start capturing packets for each website
@@ -70,15 +91,16 @@ for repeat in range(NUM_REPEATS):
         folder_path = os.path.join(BASE_DIR, folder_name)
         os.makedirs(folder_path, exist_ok=True)
 
-        # Naming PCAP file
+        # Naming PCAP file and screenshot file
         pcap_file = os.path.join(folder_path, f"trace_{repeat+1}.pcap")
+        screenshot_file = os.path.join(folder_path, f"screenshot_{repeat+1}.png")
         print(f"  📌 Visiting: {site} (Trace {repeat + 1})")
 
         # Start capturing packets (NO FILTERING)
         tshark_process = start_packet_capture(pcap_file)
 
-        # Visit website using Firefox
-        visit_website(site)
+        # Visit website, take a screenshot, and scroll
+        visit_website(site, screenshot_file)
 
         # Stop tshark
         tshark_process.terminate()
