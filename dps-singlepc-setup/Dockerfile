@@ -29,6 +29,7 @@ RUN wget -O /tmp/geckodriver.tar.gz "https://github.com/mozilla/geckodriver/rele
     chmod +x /usr/bin/geckodriver && \
     rm /tmp/geckodriver.tar.gz
 WORKDIR /app
+COPY websites.csv /app/
 COPY app_to_collect_data.py /app/
 RUN apt-get install -y tcpdump
 RUN apt-get update && apt-get install -y tshark
