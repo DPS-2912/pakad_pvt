@@ -7,3 +7,4 @@ Setup Steps :
 4. copy the Dockerfile and app_to_collect_data into the directory
 5. docker build -t packet_capture .
 6. docker run -it -v /home/dps/captures:/app/captures mock_dc /bin/bash         #Now all the captures in docker container will also be copied in home system
+7. run python script using command : python3 /app/app_to_collect_data.py
